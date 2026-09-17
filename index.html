@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ForgeFit</title>
+<style>
+:root{--bg:#061017;--panel:#0b1b25;--panel2:#102632;--line:#1b3b4b;--blue:#1688ff;--cyan:#4fc3ff;--green:#55e39b;--white:#f7fbff;--muted:#91a5b2}
+*{box-sizing:border-box}body{margin:0;background:#02070b;color:var(--white);font-family:Arial,sans-serif}
+.app{width:min(430px,100%);min-height:100vh;margin:auto;background:linear-gradient(180deg,#071722,#031016);padding-bottom:88px}
+.page{display:none}.page.active{display:block}.top{padding:24px 18px 12px}
+h1{font-size:30px;margin:0 0 3px}h2{font-size:23px;margin:7px 0}h3{margin:0 0 4px}.muted{color:var(--muted);font-size:13px}
+.card{margin:12px 16px;padding:17px;border-radius:19px;border:1px solid var(--line);background:linear-gradient(145deg,#102735,#081923);box-shadow:0 10px 30px #0005}
+.hero{position:relative;overflow:hidden;min-height:190px;background:linear-gradient(135deg,#123b59,#091c29)}
+.hero:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-75px;top:-65px;background:#1688ff22}
+.badge{display:inline-block;border-radius:18px;padding:6px 10px;background:#113c33;color:var(--green);font-size:11px;font-weight:bold}
+.btn{width:100%;border:0;border-radius:13px;padding:14px;background:var(--blue);color:white;font-weight:800;font-size:15px;box-shadow:0 6px 20px #1688ff44}
+.btn.secondary{background:#0b2230;border:1px solid #28566c;box-shadow:none}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stats{display:flex;gap:8px}.stat{flex:1;padding:12px 6px;text-align:center;border:1px solid #183a4b;border-radius:12px;background:#081a24}.stat b{display:block;font-size:17px}.stat span{color:var(--muted);font-size:9px}
+.progress{height:8px;border-radius:10px;background:#20333e;overflow:hidden}.progress i{height:100%;display:block;background:linear-gradient(90deg,#1688ff,#4fc3ff)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:13px}.wd{text-align:center;color:var(--muted);font-size:10px}.circle{width:30px;height:30px;border-radius:50%;margin:6px auto 0;border:1px solid #294754;display:flex;align-items:center;justify-content:center;font-size:11px}.done{background:#123b30;border-color:#2c9f76;color:#55e39b}.today{background:#1688ff;border-color:#1688ff;color:white}
+.exercise{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #183542;cursor:pointer}.exercise:last-child{border-bottom:0}
+.thumb{width:66px;height:57px;flex:none;border-radius:12px;background:radial-gradient(circle at 50% 35%,#365566,#122833);display:flex;align-items:center;justify-content:center;font-size:30px}
+.tags{display:flex;gap:5px;margin-top:5px}.tag{font-size:9px;color:#9db1bd;background:#0a1c26;border:1px solid #1a3a48;border-radius:9px;padding:4px 7px}
+.demo{height:245px;border-radius:18px;background:radial-gradient(circle at 50% 35%,#315365,#0a1820 72%);display:flex;align-items:center;justify-content:center;font-size:100px}
+.controls{display:flex;gap:9px}.controls button{flex:1}.bigtime{text-align:center;font-size:44px;font-weight:800;padding:8px}
+.search{width:100%;padding:13px;border-radius:12px;background:#081923;border:1px solid #214455;color:white}
+.tabs{display:flex;gap:7px;overflow:auto;padding:10px 0}.tab{white-space:nowrap;border:1px solid #214455;background:#0b202c;color:#a8b9c3;padding:8px 12px;border-radius:18px;font-size:11px}.tab.on{background:#1688ff;color:white;border-color:#1688ff}
+nav{position:fixed;z-index:9;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);height:76px;background:#06131c;border-top:1px solid #173746;display:flex;justify-content:space-around}nav button{background:none;border:0;color:#718692;font-size:10px;min-width:62px}nav button.active{color:#35a0ff}
+.bargraph{height:155px;display:flex;align-items:end;gap:8px}.bar{flex:1;border-radius:7px 7px 2px 2px;background:linear-gradient(#1688ff,#10589e);min-height:18px}.barlabel{text-align:center;color:var(--muted);font-size:9px;margin-top:5px}
+select{width:100%;padding:12px;border-radius:11px;background:#081923;border:1px solid #214455;color:white;margin:5px 0}
+.check{width:23px;height:23px;border-radius:50%;border:1px solid #365463;display:flex;align-items:center;justify-content:center;color:#55e39b}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="home" class="page active">
+<div class="top"><h1>ForgeFit</h1><div class="muted">Build a stronger you</div></div>
+<div class="card hero"><span class="badge">TODAY'S PLAN</span><h2>Upper Body</h2><div class="muted">6 exercises · 45–60 min</div><br><button class="btn" onclick="openWorkout()">▶ Start Workout</button></div>
+<div class="card"><div class="row"><b>Weekly progress</b><b>4/5</b></div><div class="progress" style="margin-top:11px"><i style="width:80%"></i></div><div class="week"><div class="wd">M<div class="circle done">✓</div></div><div class="wd">T<div class="circle done">✓</div></div><div class="wd">W<div class="circle done">✓</div></div><div class="wd">T<div class="circle done">✓</div></div><div class="wd">F<div class="circle today">•</div></div><div class="wd">S<div class="circle">•</div></div><div class="wd">S<div class="circle">•</div></div></div></div>
+<div class="card"><h3>Today's stats</h3><div class="stats"><div class="stat"><b>4</b><span>WORKOUTS</span></div><div class="stat"><b>3h 45m</b><span>TIME</span></div><div class="stat"><b>2,840</b><span>CALORIES</span></div></div></div>
+</section>
+
+<section id="workout" class="page">
+<div class="top"><div class="muted">FRIDAY · UPPER BODY</div><h2>Your workout</h2><div class="progress"><i id="workbar"></i></div></div>
+<div class="card" id="workoutList"></div>
+</section>
+
+<section id="exercise" class="page">
+<div class="top"><button onclick="show('workout')" style="background:none;border:0;color:#4fc3ff;font-weight:bold">← Back</button><div class="muted" id="enum" style="margin-top:13px"></div><h2 id="ename"></h2><div class="muted" id="edetail"></div></div>
+<div class="card"><div class="demo" id="visual">🏋️</div><h3>How to do it</h3><p class="muted" id="instructions"></p><div class="stats" style="margin-top:14px"><div class="stat"><b id="sets">3</b><span>SETS</span></div><div class="stat"><b id="reps">10</b><span>REPS</span></div><div class="stat"><b id="rest">90s</b><span>REST</span></div></div><br><button class="btn" onclick="completeSet()">✓ Log Set</button></div>
+</section>
+
+<section id="rest" class="page">
+<div class="top"><button onclick="show('exercise')" style="background:none;border:0;color:#4fc3ff">← Back</button><h2>Rest timer</h2></div>
+<div class="card" style="text-align:center"><div class="bigtime" id="timer">01:30</div><div class="progress"><i id="timerbar" style="width:100%"></i></div><br><div class="controls"><button class="btn secondary" onclick="addTime(-15)">−15s</button><button class="btn" onclick="toggleTimer()" id="timerBtn">Start</button><button class="btn secondary" onclick="addTime(15)">+15s</button></div></div>
+<div class="card"><div class="row"><span class="muted">Up next</span><b id="nextName">Incline Dumbbell Press</b></div></div>
+</section>
+
+<section id="library" class="page">
+<div class="top"><h2>Exercise library</h2><input class="search" id="search" placeholder="Search exercises..." oninput="renderLibrary()"><div class="tabs"><span class="tab on">All</span><span class="tab">Chest</span><span class="tab">Back</span><span class="tab">Legs</span><span class="tab">Arms</span></div></div>
+<div class="card" id="lib"></div>
+</section>
+
+<section id="progress" class="page">
+<div class="top"><h2>Progress</h2><div class="muted">Your recent training activity</div></div>
+<div class="card"><div class="row"><b>Weekly activity</b><b>4/5</b></div><div class="bargraph"><div style="height:45%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">M</div></div><div style="height:70%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">T</div></div><div style="height:55%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">W</div></div><div style="height:82%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">T</div></div><div style="height:48%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">F</div></div><div style="height:25%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">S</div></div><div style="height:18%;flex:1"><div class="bar" style="height:100%"></div><div class="barlabel">S</div></div></div></div>
+<div class="card"><h3>Strength progress</h3><div class="exercise"><div class="thumb">🏋️</div><div style="flex:1"><b>Bench Press</b><div class="muted">105 lb · +5 lb</div></div><span style="color:#55e39b">↗</span></div><div class="exercise"><div class="thumb">🦵</div><div style="flex:1"><b>Squat</b><div class="muted">185 lb · +10 lb</div></div><span style="color:#55e39b">↗</span></div></div>
+</section>
+
+<section id="plan" class="page">
+<div class="top"><h2>Create your plan</h2><div class="muted">Set your preferences and ForgeFit builds a starting schedule.</div></div>
+<div class="card"><b>Goal</b><select><option>Build strength</option><option>Build muscle</option><option>General fitness</option></select><b>Experience</b><select><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select><b>Days per week</b><select><option>3 days</option><option>4 days</option><option>5 days</option></select><b>Equipment</b><select><option>Full gym</option><option>Dumbbells</option><option>Bodyweight</option></select><br><button class="btn" onclick="alert('Your starter plan is ready!')">Generate my plan</button></div>
+</section>
+
+<section id="profile" class="page">
+<div class="top"><h2>Profile</h2></div><div class="card"><div class="row"><div style="width:58px;height:58px;border-radius:50%;background:#1688ff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold">F</div><div style="flex:1"><h3>My profile</h3><div class="muted">Training dashboard</div></div><span>⚙</span></div></div>
+<div class="card"><h3>My goals</h3><div class="exercise">Build strength <span>›</span></div><div class="exercise">4 days per week <span>›</span></div><div class="exercise">Full gym <span>›</span></div></div></section>
+
+<nav><button class="active" onclick="show('home',this)">⌂<br>Home</button><button onclick="show('workout',this)">🏋<br>Workout</button><button onclick="show('progress',this)">↗<br>Progress</button><button onclick="show('library',this)">▦<br>Library</button><button onclick="show('profile',this)">●<br>Profile</button></nav>
+</div>
+<script>
+const ex=[
+{name:"Barbell Bench Press",sets:"4 sets · 8–10 reps",icon:"🏋️",info:"Lie on the bench with your feet planted. Grip the bar comfortably, lower it with control, then press it back up.",s:"4",r:"8–10",rest:90},
+{name:"Incline Dumbbell Press",sets:"3 sets · 10–12 reps",icon:"💪",info:"Use a comfortable incline. Start with the dumbbells near chest level, press upward, then lower them slowly.",s:"3",r:"10–12",rest:90},
+{name:"Overhead Press",sets:"3 sets · 10–12 reps",icon:"🙆",info:"Start with the weights near shoulder height. Brace your core and press overhead with controlled movement.",s:"3",r:"10–12",rest:60},
+{name:"Lateral Raise",sets:"3 sets · 12–15 reps",icon:"🏋️",info:"Raise the weights out to your sides with control and lower them slowly. Avoid swinging.",s:"3",r:"12–15",rest:60},
+{name:"Tricep Pushdown",sets:"3 sets · 12–15 reps",icon:"💪",info:"Keep your elbows close to your sides and move mainly at the elbows as you press down.",s:"3",r:"12–15",rest:60},
+{name:"Push-ups",sets:"3 sets · max reps",icon:"🤸",info:"Keep your body in a straight line, lower your chest under control, and push back up.",s:"3",r:"Max",rest:60}
+];
+let current=0,seconds=90,timerInt=null,setsDone=0;
+function show(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn){document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}}
+function openWorkout(){show('workout');renderWorkout()}
+function renderWorkout(){workoutList.innerHTML=ex.map((e,i)=>`<div class="exercise" onclick="openEx(${i})"><div class="thumb">${e.icon}</div><div style="flex:1"><b>${i+1}. ${e.name}</b><div class="muted">${e.sets}</div><div class="tags"><span class="tag">Chest</span><span class="tag">Compound</span></div></div><b>›</b></div>`).join("")}
+function openEx(i){current=i;let e=ex[i];show('exercise');enum.textContent=`EXERCISE ${i+1} OF ${ex.length}`;ename.textContent=e.name;edetail.textContent=e.sets;visual.textContent=e.icon;instructions.textContent=e.info;sets.textContent=e.s;reps.textContent=e.r;rest.textContent=e.rest+"s";nextName.textContent=ex[(i+1)%ex.length].name}
+function completeSet(){setsDone++;workbar.style.width=Math.min(setsDone/ex.length*100,100)+"%";if(current<ex.length-1){seconds=ex[current].rest;setTimerDisplay();show('rest')}else{alert("Workout complete! Nice work.");show('home');setsDone=0;workbar.style.width="0%"}}
+function setTimerDisplay(){let m=Math.floor(seconds/60),s=seconds%60;timer.textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");timerbar.style.width=Math.max(0,seconds/90*100)+"%"}
+function addTime(n){seconds=Math.max(0,seconds+n);setTimerDisplay()}
+function toggleTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;timerBtn.textContent="Start"}else{timerBtn.textContent="Pause";timerInt=setInterval(()=>{if(seconds>0){seconds--;setTimerDisplay()}else{clearInterval(timerInt);timerInt=null;timerBtn.textContent="Start"}},1000)}}
+function renderLibrary(){let q=(search.value||"").toLowerCase();lib.innerHTML=ex.filter(e=>e.name.toLowerCase().includes(q)).map(e=>`<div class="exercise"><div class="thumb">${e.icon}</div><div><b>${e.name}</b><div class="muted">${e.sets}</div></div></div>`).join("")}
+renderWorkout();renderLibrary();setTimerDisplay();
+</script>
+</body></html>
