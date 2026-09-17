@@ -1,0 +1,9 @@
+"name": "ForgeFit",
+  "short_name": "ForgeFit",
+  "description": "Your personal workout and fitness app",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "icons": []
