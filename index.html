@@ -100,5 +100,96 @@ function addTime(n){seconds=Math.max(0,seconds+n);setTimerDisplay()}
 function toggleTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;timerBtn.textContent="Start"}else{timerBtn.textContent="Pause";timerInt=setInterval(()=>{if(seconds>0){seconds--;setTimerDisplay()}else{clearInterval(timerInt);timerInt=null;timerBtn.textContent="Start"}},1000)}}
 function renderLibrary(){let q=(search.value||"").toLowerCase();lib.innerHTML=ex.filter(e=>e.name.toLowerCase().includes(q)).map(e=>`<div class="exercise"><div class="thumb">${e.icon}</div><div><b>${e.name}</b><div class="muted">${e.sets}</div></div></div>`).join("")}
 renderWorkout();renderLibrary();setTimerDisplay();
+  /* ForgeFit PR Weight Chart + Goals */
+const prExercises = [
+  {name:"Barbell Bench Press", percent:.75},
+  {name:"Incline Dumbbell Press", percent:.70},
+  {name:"Overhead Press", percent:.70},
+  {name:"Lateral Raise", percent:.70},
+  {name:"Tricep Pushdown", percent:.70}
+];
+
+function forgeFitGoals(){
+  let box=document.createElement("div");
+  box.className="card";
+  box.id="forgefitGoals";
+  box.innerHTML=`
+    <h3>🎯 My Goals</h3>
+    <p>Goal: <input id="ffGoal" placeholder="e.g. Get stronger"></p>
+    <p>Goal date: <input id="ffDate" type="date"></p>
+    <button class="btn" onclick="saveForgeFitGoals()">Save Goal</button>
+    <div id="ffGoalSaved"></div>
+  `;
+  document.querySelector("#profile").appendChild(box);
+  loadForgeFitGoals();
+}
+
+function saveForgeFitGoals(){
+  localStorage.setItem("ffGoal",document.getElementById("ffGoal").value);
+  localStorage.setItem("ffDate",document.getElementById("ffDate").value);
+  loadForgeFitGoals();
+}
+
+function loadForgeFitGoals(){
+  let g=localStorage.getItem("ffGoal")||"";
+  let d=localStorage.getItem("ffDate")||"";
+  let goal=document.getElementById("ffGoal");
+  let date=document.getElementById("ffDate");
+  let saved=document.getElementById("ffGoalSaved");
+  if(goal) goal.value=g;
+  if(date) date.value=d;
+  if(saved && g){
+    saved.innerHTML=`<p><b>Goal:</b> ${g}<br><b>Deadline:</b> ${d||"Not set"}</p>`;
+  }
+}
+
+function forgeFitPRChart(){
+  let box=document.createElement("div");
+  box.className="card";
+  box.id="forgefitPR";
+  box.innerHTML=`
+    <h3>🏋️ PR → Training Weight</h3>
+    <p>Enter your PR for each exercise. ForgeFit will calculate a conservative starting training weight.</p>
+    <div id="ffPRRows"></div>
+  `;
+  document.querySelector("#profile").appendChild(box);
+
+  let rows=document.getElementById("ffPRRows");
+
+  prExercises.forEach((e,i)=>{
+    let old=localStorage.getItem("ffpr_"+i)||"";
+    rows.innerHTML+=`
+      <div style="margin:12px 0;padding:10px;border:1px solid #334;border-radius:10px">
+        <b>${e.name}</b><br>
+        PR:
+        <input id="ffpr${i}" type="number" inputmode="decimal"
+          value="${old}" placeholder="lbs"
+          style="width:90px">
+        <button class="btn" onclick="calcFFPR(${i})">Calculate</button>
+        <div id="ffresult${i}" style="margin-top:6px"></div>
+      </div>
+    `;
+  });
+}
+
+function calcFFPR(i){
+  let input=document.getElementById("ffpr"+i);
+  let pr=parseFloat(input.value);
+  if(!pr || pr<=0) return;
+
+  localStorage.setItem("ffpr_"+i,pr);
+
+  let suggested=Math.round(pr*prExercises[i].percent);
+  document.getElementById("ffresult"+i).innerHTML=
+    `<b>Suggested starting weight: ${suggested} lb</b>
+     <br><small>Use good form and adjust if needed.</small>`;
+}
+
+setTimeout(()=>{
+  if(document.querySelector("#profile")){
+    forgeFitGoals();
+    forgeFitPRChart();
+  }
+},300);
 </script>
 </body></html>
