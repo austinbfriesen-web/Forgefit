@@ -143,53 +143,518 @@ function loadForgeFitGoals(){
   }
 }
 
-function forgeFitPRChart(){
-  let box=document.createElement("div");
+/* ===== FORGEFIT WORKING FEATURES ===== */
+
+/* ---------- PR TRAINING WEIGHTS ---------- */
+
+const forgePRExercises = [
+  {name:"Barbell Bench Press", percent:.75},
+  {name:"Incline Dumbbell Press", percent:.70},
+  {name:"Overhead Press", percent:.70},
+  {name:"Lateral Raise", percent:.70},
+  {name:"Tricep Pushdown", percent:.70}
+];
+
+function buildPRChart(){
+  if(document.getElementById("forgePRBox")) return;
+
+  const profile=document.getElementById("profile");
+  if(!profile) return;
+
+  const box=document.createElement("div");
   box.className="card";
-  box.id="forgefitPR";
+  box.id="forgePRBox";
+
   box.innerHTML=`
-    <h3>🏋️ PR → Training Weight</h3>
-    <p>Enter your PR for each exercise. ForgeFit will calculate a conservative starting training weight.</p>
-    <div id="ffPRRows"></div>
+    <h3>🏋️ PR Training Weights</h3>
+    <p class="muted">
+      Enter your personal record for an exercise and ForgeFit
+      will calculate a starting training weight.
+    </p>
+    <div id="forgePRRows"></div>
   `;
-  document.querySelector("#profile").appendChild(box);
 
-  let rows=document.getElementById("ffPRRows");
+  profile.appendChild(box);
 
-  prExercises.forEach((e,i)=>{
-    let old=localStorage.getItem("ffpr_"+i)||"";
+  const rows=document.getElementById("forgePRRows");
+
+  forgePRExercises.forEach((e,i)=>{
+    const old=localStorage.getItem("forge_pr_"+i)||"";
+
     rows.innerHTML+=`
-      <div style="margin:12px 0;padding:10px;border:1px solid #334;border-radius:10px">
-        <b>${e.name}</b><br>
-        PR:
-        <input id="ffpr${i}" type="number" inputmode="decimal"
-          value="${old}" placeholder="lbs"
-          style="width:90px">
-        <button class="btn" onclick="calcFFPR(${i})">Calculate</button>
-        <div id="ffresult${i}" style="margin-top:6px"></div>
+      <div style="
+        margin:12px 0;
+        padding:12px;
+        border:1px solid #294754;
+        border-radius:12px;
+        background:#081923">
+
+        <b>${e.name}</b>
+
+        <div style="margin-top:8px">
+          PR:
+          <input
+            id="forgePR${i}"
+            type="number"
+            inputmode="decimal"
+            value="${old}"
+            placeholder="lbs"
+            style="
+              width:90px;
+              padding:8px;
+              margin-left:5px;
+              border-radius:8px;
+              border:1px solid #315365;
+              background:#061017;
+              color:white">
+        </div>
+
+        <button
+          class="btn"
+          style="margin-top:9px"
+          onclick="calculateForgePR(${i})">
+          Calculate
+        </button>
+
+        <div
+          id="forgePRResult${i}"
+          style="margin-top:8px">
+        </div>
       </div>
     `;
   });
 }
 
-function calcFFPR(i){
-  let input=document.getElementById("ffpr"+i);
-  let pr=parseFloat(input.value);
-  if(!pr || pr<=0) return;
+function calculateForgePR(i){
+  const input=document.getElementById("forgePR"+i);
+  const result=document.getElementById("forgePRResult"+i);
 
-  localStorage.setItem("ffpr_"+i,pr);
+  if(!input || !result) return;
 
-  let suggested=Math.round(pr*prExercises[i].percent);
-  document.getElementById("ffresult"+i).innerHTML=
-    `<b>Suggested starting weight: ${suggested} lb</b>
-     <br><small>Use good form and adjust if needed.</small>`;
+  const pr=parseFloat(input.value);
+
+  if(!pr || pr<=0){
+    result.innerHTML=
+      `<span style="color:#ff9b9b">Enter a valid PR first.</span>`;
+    return;
+  }
+
+  localStorage.setItem("forge_pr_"+i,pr);
+
+  const suggested=Math.round(
+    pr*forgePRExercises[i].percent
+  );
+
+  result.innerHTML=`
+    <b style="color:#55e39b">
+      Suggested starting weight: ${suggested} lb
+    </b>
+    <br>
+    <small class="muted">
+      Adjust as needed for good form and controlled reps.
+    </small>
+  `;
 }
 
-setTimeout(()=>{
-  if(document.querySelector("#profile")){
-    forgeFitGoals();
-    forgeFitPRChart();
+
+/* ---------- WORKOUT SET TRACKING ---------- */
+
+let forgeCurrentSet=0;
+
+function openEx(i){
+  current=i;
+  forgeCurrentSet=0;
+
+  const e=ex[i];
+
+  show("exercise");
+
+  enum.textContent=
+    `EXERCISE ${i+1} OF ${ex.length}`;
+
+  ename.textContent=e.name;
+  edetail.textContent=e.sets;
+  visual.textContent=e.icon;
+  instructions.textContent=e.info;
+  sets.textContent=e.s;
+  reps.textContent=e.r;
+  rest.textContent=e.rest+"s";
+
+  nextName.textContent=
+    ex[(i+1)%ex.length].name;
+
+  updateSetButton();
+}
+
+function updateSetButton(){
+  const button=document.querySelector(
+    "#exercise .btn"
+  );
+
+  if(!button) return;
+
+  const total=parseInt(
+    ex[current].s
+  ) || 3;
+
+  button.textContent=
+    `✓ Log Set ${Math.min(forgeCurrentSet+1,total)} / ${total}`;
+}
+
+function completeSet(){
+
+  const total=parseInt(
+    ex[current].s
+  ) || 3;
+
+  forgeCurrentSet++;
+
+  const overallProgress=
+    ((current + (forgeCurrentSet/total))
+    / ex.length)*100;
+
+  workbar.style.width=
+    Math.min(overallProgress,100)+"%";
+
+  if(forgeCurrentSet < total){
+
+    seconds=ex[current].rest;
+
+    setTimerDisplay();
+
+    show("rest");
+
+    nextName.textContent=
+      ex[current].name+
+      " — Set "+
+      (forgeCurrentSet+1);
+
+  }else{
+
+    forgeCurrentSet=0;
+
+    if(current < ex.length-1){
+
+      current++;
+
+      openEx(current);
+
+    }else{
+
+      alert(
+        "Workout complete! Great job finishing all your sets."
+      );
+
+      show("home");
+
+      setsDone=0;
+      workbar.style.width="0%";
+    }
   }
-},300);
+}
+
+
+/* ---------- LIBRARY FILTER TABS ---------- */
+
+let forgeLibraryCategory="All";
+
+function forgeFilterLibrary(category,button){
+
+  forgeLibraryCategory=category;
+
+  document
+    .querySelectorAll(".tab")
+    .forEach(t=>t.classList.remove("on"));
+
+  if(button){
+    button.classList.add("on");
+  }
+
+  renderForgeLibrary();
+}
+
+function renderForgeLibrary(){
+
+  const q=(
+    document.getElementById("search")?.value || ""
+  ).toLowerCase();
+
+  const categories={
+    "Barbell Bench Press":"Chest",
+    "Incline Dumbbell Press":"Chest",
+    "Overhead Press":"Arms",
+    "Lateral Raise":"Arms",
+    "Tricep Pushdown":"Arms",
+    "Push-ups":"Chest"
+  };
+
+  const filtered=ex.filter(e=>{
+
+    const matchesSearch=
+      e.name.toLowerCase().includes(q);
+
+    const category=
+      categories[e.name] || "All";
+
+    const matchesCategory=
+      forgeLibraryCategory==="All" ||
+      category===forgeLibraryCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  lib.innerHTML=filtered.map(e=>`
+
+    <div
+      class="exercise"
+      onclick="openEx(${ex.indexOf(e)})">
+
+      <div class="thumb">${e.icon}</div>
+
+      <div style="flex:1">
+        <b>${e.name}</b>
+        <div class="muted">${e.sets}</div>
+      </div>
+
+      <b>›</b>
+    </div>
+
+  `).join("");
+
+  if(!filtered.length){
+    lib.innerHTML=
+      `<div class="muted" style="padding:15px">
+        No exercises found.
+      </div>`;
+  }
+}
+
+
+/* ---------- PERSONALIZED PLAN ---------- */
+
+function generateForgePlan(){
+
+  const selects=
+    document.querySelectorAll("#plan select");
+
+  if(selects.length<4) return;
+
+  const goal=selects[0].value;
+  const experience=selects[1].value;
+  const days=selects[2].value;
+  const equipment=selects[3].value;
+
+  localStorage.setItem(
+    "forge_goal",
+    goal
+  );
+
+  localStorage.setItem(
+    "forge_experience",
+    experience
+  );
+
+  localStorage.setItem(
+    "forge_days",
+    days
+  );
+
+  localStorage.setItem(
+    "forge_equipment",
+    equipment
+  );
+
+  let schedule=[];
+
+  if(days.includes("3")){
+    schedule=[
+      "Upper Body",
+      "Lower Body",
+      "Full Body"
+    ];
+  }
+
+  if(days.includes("4")){
+    schedule=[
+      "Upper Body",
+      "Lower Body",
+      "Upper Body",
+      "Lower Body"
+    ];
+  }
+
+  if(days.includes("5")){
+    schedule=[
+      "Upper Body",
+      "Lower Body",
+      "Push",
+      "Pull",
+      "Full Body"
+    ];
+  }
+
+  let old=document.getElementById(
+    "forgeGeneratedPlan"
+  );
+
+  if(old) old.remove();
+
+  const card=document.createElement("div");
+
+  card.className="card";
+  card.id="forgeGeneratedPlan";
+
+  card.innerHTML=`
+    <h3>🔥 Your ForgeFit Plan</h3>
+
+    <div class="muted">
+      Goal: <b style="color:white">${goal}</b><br>
+      Experience: <b style="color:white">${experience}</b><br>
+      Equipment: <b style="color:white">${equipment}</b>
+    </div>
+
+    <br>
+
+    ${schedule.map((day,i)=>`
+      <div class="exercise">
+        <div class="check">✓</div>
+        <div style="flex:1">
+          <b>Day ${i+1} — ${day}</b>
+          <div class="muted">
+            ForgeFit workout
+          </div>
+        </div>
+      </div>
+    `).join("")}
+
+    <br>
+
+    <button
+      class="btn secondary"
+      onclick="show('workout')">
+      Start Today's Workout
+    </button>
+  `;
+
+  document
+    .getElementById("plan")
+    .appendChild(card);
+}
+
+
+/* ---------- LOAD SAVED PLAN ---------- */
+
+function loadForgePlan(){
+
+  const selects=
+    document.querySelectorAll("#plan select");
+
+  if(selects.length<4) return;
+
+  const goal=
+    localStorage.getItem("forge_goal");
+
+  const experience=
+    localStorage.getItem("forge_experience");
+
+  const days=
+    localStorage.getItem("forge_days");
+
+  const equipment=
+    localStorage.getItem("forge_equipment");
+
+  if(goal) selects[0].value=goal;
+  if(experience) selects[1].value=experience;
+  if(days) selects[2].value=days;
+  if(equipment) selects[3].value=equipment;
+}
+
+
+/* ---------- MAKE EVERYTHING ACTIVE ---------- */
+
+setTimeout(()=>{
+
+  /* PR chart */
+  buildPRChart();
+
+  /* saved plan */
+  loadForgePlan();
+
+  /* library search */
+  const searchBox=
+    document.getElementById("search");
+
+  if(searchBox){
+    searchBox.oninput=
+      renderForgeLibrary;
+  }
+
+  /* library tabs */
+  document
+    .querySelectorAll(".tab")
+    .forEach(tab=>{
+
+      tab.onclick=function(){
+
+        forgeFilterLibrary(
+          tab.textContent.trim(),
+          tab
+        );
+
+      };
+
+    });
+
+  /* plan button */
+  const planButton=
+    document.querySelector("#plan .btn");
+
+  if(planButton){
+
+    planButton.onclick=function(){
+
+      generateForgePlan();
+
+    };
+
+  }
+
+  renderForgeLibrary();
+
+},500);
+
+
+/* ---------- REST TIMER RESET ---------- */
+
+function openRestTimer(){
+
+  seconds=
+    ex[current].rest;
+
+  setTimerDisplay();
+
+  show("rest");
+}
+
+
+/* ---------- SAVE WORKOUT PROGRESS ---------- */
+
+function saveForgeWorkout(){
+
+  let workouts=
+    parseInt(
+      localStorage.getItem("forge_workouts") || "0"
+    );
+
+  workouts++;
+
+  localStorage.setItem(
+    "forge_workouts",
+    workouts
+  );
+}
+
+
+/* ===== END FORGEFIT WORKING FEATURES ===== */
 </script>
 </body></html>
